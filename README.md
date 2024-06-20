@@ -29,3 +29,6 @@ See the [Rune docs](https://developers.rune.ai/docs/quick-start) for more info. 
 ## Extensions for svelte
 svelte.svelte-vscode
 ardenivanov.svelte-intellisense
+
+## Root directory switch fix
+Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy Unrestricted
