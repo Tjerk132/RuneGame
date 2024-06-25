@@ -1,5 +1,6 @@
 import type { RuneClient } from "rune-games-sdk"
 import type { Cells, GameState, PersistedData } from "./state/game/GameState"
+import { characters } from "./state/game/Characters"
 
 declare global {
     const Rune: RuneClient<GameState, GameActions, PersistedData>
@@ -23,20 +24,26 @@ const findWinningCombo = (cells: Cells) => {
 }
 
 const setup = (allPlayerIds: string[]) => ({
+    characters,
     cells: new Array(9).fill(null),
     winCombo: null,
     lastMove: {
         playerId: null,
         time: 0
     },
+    players: allPlayerIds.map((playerId) => ({
+        playerId: playerId,
+        character: null
+    })),
     playerIds: allPlayerIds,
     moveDuration: 0
-});
+}) as GameState;
 
 Rune.initLogic({
     persistPlayerData: true,
     minPlayers: 2,
-    maxPlayers: 3,
+    maxPlayers: 2,
+    // landscape: true,
     setup: setup,
     actions: {
         claimCell: (cellIndex, { game, playerId, allPlayerIds }) => {
@@ -58,8 +65,12 @@ Rune.initLogic({
 
             //if a winning row is created by a player
             if (game.winCombo) {
+                //give gold to winner
+                game.persisted[game.lastMove.playerId!].goldCurrency += 10;
+                console.log('winner gold 10 to player ', game.persisted[game.lastMove.playerId!]);
+
                 const [player1, player2] = allPlayerIds
-                //game over, player with the winning row
+                //game over, player with the winning row win
                 Rune.gameOver({
                     players: {
                         [player1]: game.lastMove.playerId === player1 ? "WON" : "LOST",
@@ -79,14 +90,27 @@ Rune.initLogic({
                 })
             }
         },
+        selectCharacter(characterId, { game, playerId, allPlayerIds }) {
+            // if(playerId )
+            const character = game.characters.find(character => character.id === characterId)
+
+            let player = game.players.find(player => player.playerId = playerId);//?.character = character;
+            if (player) {
+                player.character = character ?? null;
+            }
+        },
     },
     update({ game, allPlayerIds }) {
         game.moveDuration = (Rune.gameTime() / 1000) - game.lastMove.time;
+        // if (game.winCombo) {
+        //     //give gold to winner
+        //     game.persisted[game.lastMove.playerId!].goldCurrency += 10;
+        //     console.log('winner gold 10 to player ', game.persisted[game.lastMove.playerId!]);
+        // }
     },
     events: {
         playerJoined(playerId, eventContext) {
             //give gold to player when joined, for persisted data test
-            eventContext.game.persisted[playerId].goldCurrency += 10;
 
             if (eventContext.game.playerIds.length === 2) {
                 //Indicate player is spectator

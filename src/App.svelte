@@ -3,10 +3,12 @@
   import type { GameState, PersistedData } from "./state/game/GameState";
   import selectSoundAudio from "./assets/select.wav";
   import "./App.scss";
-  
+
   let game = $state<GameStateWithPersisted<GameState, PersistedData>>();
   let mPlayerId = $state<PlayerId | undefined>();
   let playerGoldCurrency = $state<number>(0);
+  let playerSelectedCharacter = $state<string | undefined>(undefined);
+
   const selectSound = new Audio(selectSoundAudio);
 
   $effect(() => {
@@ -16,16 +18,35 @@
         mPlayerId = yourPlayerId;
 
         if (mPlayerId) {
-          playerGoldCurrency = game.persisted[mPlayerId]?.goldCurrency ?? 0;
+          playerGoldCurrency = game.persisted[mPlayerId]?.goldCurrency || 0;
         }
 
         if (action && action.name === "claimCell") selectSound.play();
+
+        if (action && action.name === "selectCharacter" && action.playerId === mPlayerId)
+          playerSelectedCharacter =
+            game.players.find((player) => player.playerId)?.character?.name;
       },
     });
   });
 </script>
 
 {#if game}
+  {#if !playerSelectedCharacter}
+    Please select a characters
+    {#each game.characters as character}
+      <button
+        onclick={() => {
+          Rune.actions.selectCharacter(character.id);
+        }}
+      >
+        {character.name}
+      </button>
+    {/each}
+  {:else}
+      selected {playerSelectedCharacter}
+  {/if}
+
   $ {playerGoldCurrency}
   <br />
   {game.moveDuration}
