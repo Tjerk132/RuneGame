@@ -1,5 +1,6 @@
 import type { RuneClient } from "rune-games-sdk"
 import type { Cells, GameState, PersistedData } from "./state/game/GameState"
+import type { GameActions } from "./state/game/GameActions";
 import { characters } from "./state/game/Characters"
 
 declare global {
@@ -23,17 +24,24 @@ const findWinningCombo = (cells: Cells) => {
     )
 }
 
+const colors = ['red', 'blue', 'brown', 'yellow', 'pink', 'purple'];
+
 const setup = (allPlayerIds: string[]) => ({
     characters,
+    playerPositions: allPlayerIds.map(playerId => ({
+        playerId: playerId,
+        position: null
+    })),
     cells: new Array(9).fill(null),
     winCombo: null,
     lastMove: {
         playerId: null,
         time: 0
     },
-    players: allPlayerIds.map((playerId) => ({
+    players: allPlayerIds.map((playerId,index) => ({
         playerId: playerId,
-        character: null
+        character: null,
+        color: colors[index]
     })),
     playerIds: allPlayerIds,
     moveDuration: 0
@@ -42,7 +50,7 @@ const setup = (allPlayerIds: string[]) => ({
 Rune.initLogic({
     persistPlayerData: true,
     minPlayers: 2,
-    maxPlayers: 2,
+    maxPlayers: 6,
     // landscape: true,
     setup: setup,
     actions: {
@@ -66,7 +74,7 @@ Rune.initLogic({
             //if a winning row is created by a player
             if (game.winCombo) {
                 //give gold to winner
-                game.persisted[game.lastMove.playerId!].goldCurrency += 10;
+                game.persisted[game.lastMove.playerId!].goldAmount += 10;
                 console.log('winner gold 10 to player ', game.persisted[game.lastMove.playerId!]);
 
                 const [player1, player2] = allPlayerIds
@@ -91,14 +99,14 @@ Rune.initLogic({
             }
         },
         selectCharacter(characterId, { game, playerId, allPlayerIds }) {
-            // if(playerId )
             const character = game.characters.find(character => character.id === characterId)
 
-            let player = game.players.find(player => player.playerId = playerId);//?.character = character;
+            let player = game.players.find(player => player.playerId === playerId);
             if (player) {
                 player.character = character ?? null;
             }
         },
+        confirmPosition(location, { game, playerId }) {},
     },
     update({ game, allPlayerIds }) {
         game.moveDuration = (Rune.gameTime() / 1000) - game.lastMove.time;

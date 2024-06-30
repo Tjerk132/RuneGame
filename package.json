@@ -13,6 +13,8 @@
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^3.0.2",
     "@tsconfig/svelte": "^5.0.2",
+    "@types/dat.gui": "^0.7.13",
+    "@types/three": "^0.165.0",
     "@typescript-eslint/eslint-plugin": "^7.8.0",
     "@typescript-eslint/parser": "^7.8.0",
     "eslint": "^8.57.0",
@@ -28,6 +30,8 @@
     "vite-plugin-rune": "^0.3.5"
   },
   "dependencies": {
-    "rune-games-sdk": "^4.19.13"
+    "dat.gui": "^0.7.9",
+    "rune-games-sdk": "^4.19.13",
+    "three": "^0.165.0"
   }
 }

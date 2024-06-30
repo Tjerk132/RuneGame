@@ -19,16 +19,33 @@ export type GameMove = {
     time: number
 }
 
+export type Player = {
+    playerId: PlayerId
+    character: Character | null
+    color: string
+}
+
 export type PersistedData = {
-    goldCurrency: number
+    goldAmount: number
+}
+
+export type PlayerPosition = {
+    playerId: PlayerId | null;
+    position: Position | null;
+    color: string | null
+}
+
+export type Position = {
+    [key: string]: number
 }
 
 export interface GameState {
     characters: Character[]
+    playerPositions: PlayerPosition[];
     cells: Cells
     winCombo: number[] | null
     lastMove: GameMove
-    players: { playerId: PlayerId, character: Character | null }[]
+    players: Player[]
     playerIds: PlayerId[]
     freeCells?: boolean
     moveDuration: number

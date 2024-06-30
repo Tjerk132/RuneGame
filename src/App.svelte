@@ -1,13 +1,22 @@
 <script lang="ts">
-  import type { GameStateWithPersisted, PlayerId } from "rune-games-sdk";
-  import type { GameState, PersistedData } from "./state/game/GameState";
+  import type { GameStateWithPersisted } from "rune-games-sdk";
+  import type {
+    GameState,
+    PersistedData,
+    Player,
+  } from "./state/game/GameState";
   import selectSoundAudio from "./assets/select.wav";
+  import { gameScene } from "./scenes/game/gameScene";
+  import { playerPosition } from "./store/store";
   import "./App.scss";
 
   let game = $state<GameStateWithPersisted<GameState, PersistedData>>();
-  let mPlayerId = $state<PlayerId | undefined>();
-  let playerGoldCurrency = $state<number>(0);
-  let playerSelectedCharacter = $state<string | undefined>(undefined);
+  let mPlayer = $state<Player | undefined>();
+  let playerGoldAmount = $state<number>(0);
+
+  //render terrain
+  const { render: renderGame } = gameScene();
+  window.requestAnimationFrame(() => renderGame());
 
   const selectSound = new Audio(selectSoundAudio);
 
@@ -15,42 +24,56 @@
     Rune.initClient({
       onChange: ({ game: updatedGame, action, yourPlayerId }) => {
         game = updatedGame;
-        mPlayerId = yourPlayerId;
+        mPlayer = game.players.find(
+          (player) => player.playerId === yourPlayerId,
+        );
 
-        if (mPlayerId) {
-          playerGoldCurrency = game.persisted[mPlayerId]?.goldCurrency || 0;
+        if (mPlayer) {
+          playerGoldAmount = game.persisted[mPlayer.playerId]?.goldAmount || 0;
         }
 
         if (action && action.name === "claimCell") selectSound.play();
 
-        if (action && action.name === "selectCharacter" && action.playerId === mPlayerId)
-          playerSelectedCharacter =
-            game.players.find((player) => player.playerId)?.character?.name;
+        if (action && action.name === "confirmPosition") {
+          const player = game.players.find(
+            (player) => player.playerId === action.playerId,
+          );
+
+          playerPosition.update((p) => ({
+            playerId: action.playerId,
+            color: player?.color ?? null,
+            position: action.params.position,
+          }));
+        }
       },
     });
   });
 </script>
 
-{#if game}
-  {#if !playerSelectedCharacter}
-    Please select a characters
-    {#each game.characters as character}
-      <button
-        onclick={() => {
-          Rune.actions.selectCharacter(character.id);
-        }}
-      >
-        {character.name}
-      </button>
-    {/each}
-  {:else}
-      selected {playerSelectedCharacter}
-  {/if}
-
-  $ {playerGoldCurrency}
-  <br />
-  {game.moveDuration}
-  <div id="board" class:initial={!game.lastMove.playerId}>
+<div id="game">
+  {#if game}
+    {#if !mPlayer?.character}
+      Please select a characters
+      <br />
+      {#each game.characters as character}
+        <button
+          onclick={() => {
+            Rune.actions.selectCharacter(character.id);
+          }}
+        >
+          {character.name}
+        </button>
+      {/each}
+    {:else}
+      selected {mPlayer?.character?.name}
+    {/if}
+    <br />
+    You are {mPlayer?.color}
+    <br />
+    $ {playerGoldAmount}
+    <br />
+    {game.moveDuration}
+    <!-- <div id="board" class:initial={!game.lastMove.playerId}>
     {#each game.cells as cell, index}
       {@const cellValue = cell}
       <button
@@ -97,5 +120,6 @@
         </span>
       </li>
     {/each}
-  </ul>
-{/if}
+  </ul> -->
+  {/if}
+</div>
