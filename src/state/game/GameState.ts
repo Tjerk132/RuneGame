@@ -31,7 +31,7 @@ export type PersistedData = {
 
 export type PlayerPosition = {
     playerId: PlayerId | null;
-    position: Position | null;
+    position: Position;
     color: string | null
 }
 
